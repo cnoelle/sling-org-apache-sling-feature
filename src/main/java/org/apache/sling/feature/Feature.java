@@ -379,7 +379,7 @@ public class Feature implements Comparable<Feature> {
         // prototype
         final Prototype i = this.getPrototype();
         if (i != null) {
-            final Prototype c = new Prototype(i.getId());
+            final Prototype c = i.clone();
 
             c.getBundleRemovals().addAll(i.getBundleRemovals());
             c.getConfigurationRemovals().addAll(i.getConfigurationRemovals());

@@ -16,6 +16,9 @@
  */
 package org.apache.sling.feature.builder;
 
+import java.io.IOException;
+import java.net.URL;
+
 import org.apache.sling.feature.ArtifactId;
 import org.apache.sling.feature.Feature;
 import org.osgi.annotation.versioning.ConsumerType;
@@ -32,4 +35,5 @@ public interface FeatureProvider {
      * @return The feature or {@code null}
      */
     Feature provide(ArtifactId id);
+    default Feature read(URL url) throws IOException { return null; } // dummy default to avoid spoiling the tests 
 }

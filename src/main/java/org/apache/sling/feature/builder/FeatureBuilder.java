@@ -16,6 +16,8 @@
  */
 package org.apache.sling.feature.builder;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -145,6 +147,12 @@ public abstract class FeatureBuilder {
                     }
                     return context.getFeatureProvider().provide(id);
                 }
+                
+                @Override
+                public Feature read(URL url) throws IOException {
+                	return context.getFeatureProvider().read(url);
+                }
+                
             }));
             assembledFeatures.add(assembled);
         }
@@ -311,8 +319,17 @@ public abstract class FeatureBuilder {
             result.getExtensions().clear();
 
             final Prototype i = feature.getPrototype();
-
-            final Feature f = context.getFeatureProvider().provide(i.getId());
+            final ArtifactId id = i.getId();
+            final Feature f;
+            if (id != null)
+            	f = context.getFeatureProvider().provide(id);
+            else {
+            	try {
+					f = context.getFeatureProvider().read(i.getUrl());
+				} catch (IOException e1) {
+					throw new RuntimeException("Failed to read feature " + i.getUrl(), e1);
+				}
+            }
             if ( f == null ) {
                 throw new IllegalStateException("Unable to find prototype feature " + i.getId());
             }

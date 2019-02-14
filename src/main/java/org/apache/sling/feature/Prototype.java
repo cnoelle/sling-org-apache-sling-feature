@@ -16,10 +16,12 @@
  */
 package org.apache.sling.feature;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * A prototype is a blueprint of a feature with optional removals of
@@ -35,9 +37,10 @@ import java.util.Map;
  * TODO - requirement, capabilities
  *
  */
-public class Prototype implements Comparable<Prototype> {
+public class Prototype implements Comparable<Prototype>, Cloneable {
 
     private final ArtifactId id;
+    private final URL url;
 
     private final List<String> configurationRemovals = new ArrayList<>();
 
@@ -55,19 +58,34 @@ public class Prototype implements Comparable<Prototype> {
      * @throws IllegalArgumentException If id is {@code null}.
      */
     public Prototype(final ArtifactId id) {
-        if ( id == null ) {
-            throw new IllegalArgumentException("id must not be null.");
-        }
+    	this(Objects.requireNonNull(id), null);
+    }
+    
+    public Prototype(final URL url) {
+    	this(null, Objects.requireNonNull(url));
+    }
+    
+    private Prototype(final ArtifactId id, final URL url) {
         this.id = id;
+        this.url = url;
+    }
+    
+    @Override
+    public Prototype clone() {
+    	return new Prototype(id, url);
     }
 
     /**
      * Get the id of the artifact.
-     * @return The id.
+     * @return The id. May be null.
      */
     public ArtifactId getId() {
         return this.id;
     }
+    
+    public URL getUrl() {
+		return url;
+	}
 
     public List<String> getConfigurationRemovals() {
         return configurationRemovals;
@@ -91,12 +109,16 @@ public class Prototype implements Comparable<Prototype> {
 
     @Override
     public int compareTo(final Prototype o) {
-        return this.id.compareTo(o.id);
+    	if (o == null)
+    		return 1;
+    	final String thisUrl = id != null ? id.toMvnUrl() : url.toString();
+    	final String otherUrl = o.id != null ? o.id.toMvnUrl() : url.toString();
+    	return thisUrl.compareTo(otherUrl);
     }
 
     @Override
     public int hashCode() {
-        return this.id.hashCode();
+        return id != null ? this.id.hashCode() : url.hashCode();
     }
 
     @Override
@@ -107,12 +129,16 @@ public class Prototype implements Comparable<Prototype> {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        return this.id.equals(((Prototype)obj).id);
+        final Prototype other = (Prototype) obj;
+        if (id == null && other.id != null)
+        	return false;
+        if (id != null && other.id == null)
+        	return false;
+        return id != null ? this.id.equals(other.id) : this.url.equals(other.url);
     }
 
     @Override
     public String toString() {
-        return "Include [id=" + id.toMvnId()
-                + "]";
+        return "Include [id=" + (id != null ? id.toMvnId() : url.toString()) + "]";
     }
 }
